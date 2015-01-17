@@ -1,4 +1,4 @@
-var config = {}
+﻿var config = {}
 
 config.twitter = {
 	consumer_key: 'consumer_key',
@@ -6,4 +6,6 @@ config.twitter = {
     access_token_key: 'access_token_key',
     access_token_secret: 'access_token_secret'
 }
+config.welcomehome = "Welcome back, Pépito";
+config.staysafe = "Stay safe, Pépito";
 module.exports = config;

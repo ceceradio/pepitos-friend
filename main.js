@@ -1,4 +1,4 @@
-var config = require('./config.js');
+﻿var config = require('./config.js');
 var twitter = require('twitter');
 var fs = require('fs');
 var twit = new twitter(config.twitter);
@@ -19,9 +19,11 @@ function checkPepitosTweets() {
     twit.get('statuses/user_timeline', data, function(error, tweets, response){
         if(error) console.log(error);
         if (tweets.length > 0 && tweets[0].id != since_id) {
-            var text="Welcome back, Pepito";
+            var dateText = tweets[0].text.match(/\([\d]+:[\d]+:[\d]+\)/)[0];
+            var text=config.welcomehome;
             if (tweets[0].text.indexOf("out") >= 0)
-                text="Stay safe, Pepito";
+                text=config.staysafe;
+            text += " "+dateText;
             twit.post('statuses/update', {in_reply_to_status_id: tweets[0].id_str, status: "@PepitoTheCat "+text}, function(error, body, response) {
                 if(error) console.log(error);;
             });
