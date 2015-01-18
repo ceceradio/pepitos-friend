@@ -57,7 +57,7 @@ function getResponseTweet(tweet) {
         response.status=config.welcomehome;
         if (tweet.text.indexOf("out") >= 0)
             response.status=config.staysafe;
-            
+        var dateText = tweet.text.match(/\([\d]+:[\d]+:[\d]+\)/)[0];
         response.status += " "+dateText;
         response.in_reply_to_status_id = tweet.id_str;
         saveData.since_id = tweet.id_str;
