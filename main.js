@@ -45,7 +45,7 @@ function getNormalTweet(tweet) {
     if (tweet.text.indexOf("out") >= 0)
         response.status=config.outtoolong;
     
-    response.status += " ("+moment().utc().format("HH:mm:ss")+")";
+    response.status += " ("+moment().zone("+0100").format("HH:mm:ss")+")";
     console.log("No activity: "+response.status);
     saveData.lastNormalTweet = now.getTime();
     SaveData();
@@ -58,7 +58,7 @@ function getResponseTweet(tweet) {
         if (tweet.text.indexOf("out") >= 0)
             response.status=config.staysafe;
         var dateText = tweet.text.match(/\([\d]+:[\d]+:[\d]+\)/)[0];
-        response.status += " "+dateText;
+        response.status = "@PepitoTheCat "+response.status+" "+dateText;
         response.in_reply_to_status_id = tweet.id_str;
         saveData.since_id = tweet.id_str;
         saveData.lastNormalTweet = new Date(tweet.created_at).getTime();
