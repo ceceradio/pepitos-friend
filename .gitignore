@@ -28,4 +28,5 @@ node_modules
 .lock-wscript
 
 since_id.txt
+saveData.json
 config.js

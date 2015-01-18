@@ -8,4 +8,7 @@ config.twitter = {
 }
 config.welcomehome = "Welcome back, Pépito";
 config.staysafe = "Stay safe, Pépito";
+config.outtoolong = "I miss Pépito";
+config.athome = "I'm having fun with Pépito";
+config.normalTweetInterval = 7200000;
 module.exports = config;
