@@ -30,3 +30,4 @@ node_modules
 since_id.txt
 saveData.json
 config.js
+*.jpg

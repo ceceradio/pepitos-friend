@@ -6,6 +6,7 @@ var moment = require('moment');
 
 var intervalLength = 10000;
 var saveData = {since_id: 0, lastNormalTweet: 0};
+var currentState = 0;
 
 if (fs.existsSync('saveData.json')) {
     saveData = JSON.parse(fs.readFileSync('saveData.json', {encoding: 'utf8'}));
@@ -88,5 +89,32 @@ function SaveData() {
         else console.log("Saved");
     });
 }
+function potentiallyChangeState() {
+    if (typeof config.states === "undefined" || config.states.length == 0)
+        return;
+    var threshold = 75;
+    if (Math.random() * 100 > threshold) {
+        var index = Math.floor(Math.random() * config.states.length);
+        if (index == currentState)
+            index = (index + 1) % config.states.length; 
+        changeState();
+    }
+}
+function changeState(state) {
+    if (typeof config.states === "undefined" || state < 0 && state >= config.states.length) {
+        console.log("States must be defined, or state is outside of bounds");
+        return;
+    }
+    state = config.states[state];
+    fs.readFile(state.picture,{encoding: "base64"}, function(err, data) {
+        if (err) { console.log(err); return; }
+        twit.post('account/update_profile_image', {image: data}, function(error, body, response) {
+            if(error) console.log(error);
+            console.log("Changed state to "+state.name);
+        });
+    });
+}
 checkPepitosTweets();
 setInterval(checkPepitosTweets, intervalLength);
+potentiallyChangeState();
+setInterval(potentiallyChangeState, intervalLength * 100);
