@@ -97,24 +97,24 @@ function potentiallyChangeState() {
         var index = Math.floor(Math.random() * config.states.length);
         if (index == currentState)
             index = (index + 1) % config.states.length; 
-        changeState();
+        changeState(index);
     }
 }
 function changeState(state) {
-    if (typeof config.states === "undefined" || state < 0 && state >= config.states.length) {
+    if (typeof config.states === "undefined" || typeof state == "undefined" || state < 0 && state >= config.states.length) {
         console.log("States must be defined, or state is outside of bounds");
         return;
     }
-    state = config.states[state];
-    fs.readFile(state.picture,{encoding: "base64"}, function(err, data) {
+    var stateObject = config.states[state];
+    fs.readFile(stateObject.picture,{encoding: "base64"}, function(err, data) {
         if (err) { console.log(err); return; }
         twit.post('account/update_profile_image', {image: data}, function(error, body, response) {
             if(error) console.log(error);
-            console.log("Changed state to "+state.name);
+            console.log("Changed state to "+stateObject.name);
         });
     });
 }
 checkPepitosTweets();
 setInterval(checkPepitosTweets, intervalLength);
 potentiallyChangeState();
-setInterval(potentiallyChangeState, intervalLength * 100);
+setInterval(potentiallyChangeState, intervalLength);
