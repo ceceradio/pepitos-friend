@@ -6,7 +6,7 @@ var moment = require('moment');
 
 var intervalLength = 10000;
 var saveData = {since_id: 0, lastNormalTweet: 0};
-var currentState = 0;
+var currentState = 1;
 
 if (fs.existsSync('saveData.json')) {
     saveData = JSON.parse(fs.readFileSync('saveData.json', {encoding: 'utf8'}));
@@ -42,15 +42,19 @@ function doTweet(tweetData) {
 function getNormalTweet(tweet) {
     var response = {};
     var now = new Date();
-    if (typeof config.athome === "string")
-        response.status=config.athome;
+    var msg = config;
+    if (typeof config.states !== "undefined" && config.states.length > 0) {
+        msg = config.states[currentState];
+    }
+    if (typeof msg.athome === "string")
+        response.status=msg.athome;
     else
-        response.status=config.athome[Math.floor(Math.random() * config.athome.length)];
+        response.status=msg.athome[Math.floor(Math.random() * msg.athome.length)];
     if (tweet.text.indexOf("out") >= 0) {
-        if (typeof config.outtoolong === "string")
-            response.status=config.outtoolong;
+        if (typeof msg.outtoolong === "string")
+            response.status=msg.outtoolong;
         else
-            response.status=config.outtoolong[Math.floor(Math.random() * config.outtoolong.length)];
+            response.status=msg.outtoolong[Math.floor(Math.random() * msg.outtoolong.length)];
     }
     
     response.status += " ("+moment().zone("+0100").format("HH:mm:ss")+")";
@@ -62,15 +66,20 @@ function getNormalTweet(tweet) {
 function getResponseTweet(tweet) {
     var response = {};
     if (tweet.id_str != saveData.since_id) {
-        if (typeof config.welcomehome === "string")
-            response.status=config.welcomehome;
+        var msg = config;
+        if (typeof config.states !== "undefined" && config.states.length > 0) {
+            msg = config.states[currentState];
+        }
+        if (typeof msg.welcomehome === "string")
+            response.status=msg.welcomehome;
         else
-            response.status=config.welcomehome[Math.floor(Math.random() * config.welcomehome.length)];
+            response.status=msg.welcomehome[Math.floor(Math.random() * msg.welcomehome.length)];
         if (tweet.text.indexOf("out") >= 0) {
-            if (typeof config.staysafe === "string")
-                response.status=config.staysafe;
+            if (typeof msg.staysafe === "string")
+                response.status=msg.staysafe;
             else
-                response.status=config.staysafe[Math.floor(Math.random() * config.staysafe.length)];
+                response.status=msg.staysafe[Math.floor(Math.random() * msg.staysafe.length)];
+
         }
         var dateText = tweet.text.match(/\([\d]+:[\d]+:[\d]+\)/)[0];
         response.status = "@PepitoTheCat "+response.status+" "+dateText;
@@ -106,6 +115,7 @@ function changeState(state) {
         return;
     }
     var stateObject = config.states[state];
+    currentState = state;
     fs.readFile(stateObject.picture,{encoding: "base64"}, function(err, data) {
         if (err) { console.log(err); return; }
         twit.post('account/update_profile_image', {image: data}, function(error, body, response) {
@@ -116,5 +126,5 @@ function changeState(state) {
 }
 checkPepitosTweets();
 setInterval(checkPepitosTweets, intervalLength);
-potentiallyChangeState();
-setInterval(potentiallyChangeState, intervalLength);
+changeState(currentState);
+setInterval(potentiallyChangeState, intervalLength * 6 * 30);
