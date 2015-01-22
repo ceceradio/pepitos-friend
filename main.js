@@ -20,12 +20,14 @@ function checkPepitosTweets() {
     twit.get('statuses/user_timeline', data, function(error, tweets, response){
         if(error) { console.log(error); return; }
         if (tweets.length > 0) {
+            potentiallyChangeState()
             var tweetData = getResponseTweet(tweets[0]);
             doTweet(tweetData);
         }
         else if (new Date(saveData.lastNormalTweet).getTime() + config.normalTweetInterval < Date.now()) {
             twit.get('statuses/show/'+saveData.since_id, data, function(error, tweet, response){
                 if(error) { console.log(error); return; }
+                potentiallyChangeState()
                 var tweetData = getNormalTweet(tweet);
                 doTweet(tweetData);
             });
@@ -101,7 +103,7 @@ function SaveData() {
 function potentiallyChangeState() {
     if (typeof config.states === "undefined" || config.states.length == 0)
         return;
-    var threshold = 75;
+    var threshold = 50;
     if (Math.random() * 100 > threshold) {
         var index = Math.floor(Math.random() * config.states.length);
         if (index == currentState)
@@ -126,5 +128,5 @@ function changeState(state) {
 }
 checkPepitosTweets();
 setInterval(checkPepitosTweets, intervalLength);
-changeState(currentState);
-setInterval(potentiallyChangeState, intervalLength * 6 * 30);
+//changeState(currentState);
+//setInterval(potentiallyChangeState, intervalLength * 6 * 30);
