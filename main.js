@@ -18,7 +18,7 @@ function checkPepitosTweets() {
     if (saveData.since_id > 0)
         data.since_id = saveData.since_id;
     twit.get('statuses/user_timeline', data, function(error, tweets, response){
-        if(error) { console.log(error); return; }
+        if(error) { console.log("checkPepitosTweets Error:"); console.log(error); return; }
         if (tweets.length > 0) {
             potentiallyChangeState()
             var tweetData = getResponseTweet(tweets[0]);
@@ -26,7 +26,7 @@ function checkPepitosTweets() {
         }
         else if (new Date(saveData.lastNormalTweet).getTime() + config.normalTweetInterval < Date.now()) {
             twit.get('statuses/show/'+saveData.since_id, data, function(error, tweet, response){
-                if(error) { console.log(error); return; }
+                if(error) { console.log("checkPepitosTweets get Error:"); console.log(error); return; }
                 potentiallyChangeState()
                 var tweetData = getNormalTweet(tweet);
                 // check for chance to include state photo
@@ -56,7 +56,8 @@ function doTweet(tweetData) {
     if (typeof tweetData.status === "undefined")
         return;
     twit.post('statuses/update', tweetData, function(error, body, response) {
-        if(error) console.log(error);;
+        if(error) {console.log("doTweet Error:");console.log(error);}
+        
     });
 }
 function getNormalTweet(tweet) {
@@ -77,7 +78,7 @@ function getNormalTweet(tweet) {
             response.status=msg.outtoolong[Math.floor(Math.random() * msg.outtoolong.length)];
     }
     
-    response.status += " ("+moment().zone("+0100").format("HH:mm:ss")+")";
+    response.status += " ("+moment().utcOffset("+0100").format("HH:mm:ss")+")";
     console.log("No activity: "+response.status);
     saveData.lastNormalTweet = now.getTime();
     SaveData();
@@ -145,6 +146,7 @@ function changeState(state) {
     });
 }
 checkPepitosTweets();
+
 setInterval(checkPepitosTweets, intervalLength);
 //changeState(currentState);
 //setInterval(potentiallyChangeState, intervalLength * 6 * 30);
