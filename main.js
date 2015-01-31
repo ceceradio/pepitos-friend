@@ -29,10 +29,28 @@ function checkPepitosTweets() {
                 if(error) { console.log(error); return; }
                 potentiallyChangeState()
                 var tweetData = getNormalTweet(tweet);
-                doTweet(tweetData);
+                // check for chance to include state photo
+                if (shouldPostPhoto()) {
+                    var stateObject = config.states[currentState];
+                    fs.readFile(stateObject.picture,{encoding: "base64"}, function(err, data) {
+                        // we should still post the tweet even if we can't load the file
+                        if (err) { console.log(err); doTweet(tweetData); return; }
+                        twit.post('media/upload', {media: data}, function(error, body, response) {
+                            if(error) {console.log(error); doTweet(tweetData); return }
+                            tweetData.media_ids = [response.media_id_string];
+                            doTweet(tweetData);
+                        });
+                    });
+                }
+                else {
+                    doTweet(tweetData);
+                }
             });
         }
     });
+}
+function shouldPostPhoto() {
+    return Math.random() > (2/3);
 }
 function doTweet(tweetData) {
     if (typeof tweetData.status === "undefined")
