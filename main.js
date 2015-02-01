@@ -25,32 +25,39 @@ function checkPepitosTweets() {
             doTweet(tweetData);
         }
         else if (new Date(saveData.lastNormalTweet).getTime() + config.normalTweetInterval < Date.now()) {
-            twit.get('statuses/show/'+saveData.since_id, data, function(error, tweet, response){
-                if(error) { console.log("checkPepitosTweets get Error:"); console.log(error); return; }
-                potentiallyChangeState()
-                var tweetData = getNormalTweet(tweet);
-                // check for chance to include state photo
-                if (shouldPostPhoto()) {
-                    var stateObject = config.states[currentState];
-                    fs.readFile(stateObject.picture,{encoding: "base64"}, function(err, data) {
-                        // we should still post the tweet even if we can't load the file
-                        if (err) { console.log(err); doTweet(tweetData); return; }
-                        twit.post('media/upload', {media: data}, function(error, body, response) {
-                            if(error) {console.log(error); doTweet(tweetData); return }
-                            tweetData.media_ids = [response.media_id_string];
-                            doTweet(tweetData);
-                        });
-                    });
-                }
-                else {
+            doNormalTweet();
+        }
+    });
+}
+function doNormalTweet() {
+    var data = {screen_name: "pepitothecat", exclude_replies: true};
+    if (saveData.since_id > 0)
+        data.since_id = saveData.since_id;
+    twit.get('statuses/show/'+saveData.since_id, data, function(error, tweet, response){
+        if(error) { console.log("checkPepitosTweets get Error:"); console.log(error); return; }
+        potentiallyChangeState()
+        var tweetData = getNormalTweet(tweet);
+        // check for chance to include state photo
+        if (shouldPostPhoto()) {
+            console.log('Posting Photo');
+            var stateObject = config.states[currentState];
+            fs.readFile(stateObject.picture,{encoding: "base64"}, function(err, data) {
+                // we should still post the tweet even if we can't load the file
+                if (err) { console.log(err); doTweet(tweetData); return; }
+                twit.post('media/upload', {media: data}, function(error, body, response) {
+                    if(error) {console.log(error); doTweet(tweetData); return }
+                    tweetData.media_ids = body.media_id_string;
                     doTweet(tweetData);
-                }
+                });
             });
+        }
+        else {
+            doTweet(tweetData);
         }
     });
 }
 function shouldPostPhoto() {
-    return Math.random() > (2/3);
+    return Math.random() > (2 / 3);
 }
 function doTweet(tweetData) {
     if (typeof tweetData.status === "undefined")
