@@ -129,12 +129,29 @@ function SaveData() {
 function potentiallyChangeState() {
     if (typeof config.states === "undefined" || config.states.length == 0)
         return;
-    var threshold = 50;
-    if (Math.random() * 100 > threshold) {
-        var index = Math.floor(Math.random() * config.states.length);
-        if (index == currentState)
-            index = (index + 1) % config.states.length; 
-        changeState(index);
+    if (typeof config.states[currentState].transitions == "undefined") {
+        var threshold = 50;
+        if (Math.random() * 100 > threshold) {
+            // select random state
+            var index = Math.floor(Math.random() * config.states.length);
+            if (index == currentState)
+                index = (index + 1) % config.states.length; 
+            changeState(index);
+        }
+    }
+    else {
+        var drawNumber = Math.random() * 100;
+        var minBallot = 0;
+        var maxBallot = 0;
+        for(var i = 0; i < config.states[currentState].transitions.length; i++) {
+            var transition = config.states[currentState].transitions[i];
+            maxBallot = minBallot + transition.chance;
+            if (drawNumber >= minBallot && drawNumber < maxBallot) {
+                changeState(transition.state);
+                return;
+            }
+            minBallot = maxBallot;
+        }
     }
 }
 function changeState(state) {
