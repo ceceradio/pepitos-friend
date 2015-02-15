@@ -5,13 +5,34 @@ var twit = new twitter(config.twitter);
 var moment = require('moment');
 
 var intervalLength = 10000;
-var saveData = {since_id: 0, lastNormalTweet: 0};
+var favIntervalLength = 30000;
+var saveData = {since_id: 0, lastNormalTweet: 0, pepitoIsOut: false};
 var currentState = 1;
 
 if (fs.existsSync('saveData.json')) {
     saveData = JSON.parse(fs.readFileSync('saveData.json', {encoding: 'utf8'}));
+    if (typeof saveData.pepitoIsOut === "undefined")
+        saveData.pepitoIsOut = false;
     console.log("Loaded Data: ");
     console.log(saveData);
+}
+function checkFavableTweets() {
+    if (saveData.pepitoIsOut == false)
+        return;
+    var data = {q: "cat friend", result_type: 'recent'};
+    if (typeof saveData.lastFav !== "undefined")
+        data.since_id = saveData.lastFav;
+    twit.get('search/tweets', data, function(error, tweets, response){
+        if(error) { console.log("checkFavableTweets Error:"); console.log(error); return; }
+        if (tweets.statuses.length > 0) {
+            saveData.lastFav = tweets.statuses[0].id_str;
+            twit.post('favorites/create', {id: tweets.statuses[0].id_str}, function(error, body, response) {
+                if(error) { console.log("checkFavableTweets Fav Error:"); console.log(error); return; }
+            });
+        }
+        else
+            console.log("No favable tweets found.");
+    });
 }
 function checkPepitosTweets() {
     var data = {screen_name: "pepitothecat", exclude_replies: true};
@@ -20,6 +41,10 @@ function checkPepitosTweets() {
     twit.get('statuses/user_timeline', data, function(error, tweets, response){
         if(error) { console.log("checkPepitosTweets Error:"); console.log(error); return; }
         if (tweets.length > 0) {
+            if (tweets[0].text.indexOf("out") >= 0)
+                saveData.pepitoIsOut = true;
+            else
+                saveData.pepitoIsOut = false;
             potentiallyChangeState()
             var tweetData = getResponseTweet(tweets[0]);
             doTweet(tweetData);
@@ -172,5 +197,7 @@ function changeState(state) {
 checkPepitosTweets();
 
 setInterval(checkPepitosTweets, intervalLength);
+setInterval(checkFavableTweets, favIntervalLength);
+checkFavableTweets();
 //changeState(currentState);
 //setInterval(potentiallyChangeState, intervalLength * 6 * 30);
