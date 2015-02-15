@@ -26,6 +26,7 @@ function checkFavableTweets() {
         if(error) { console.log("checkFavableTweets Error:"); console.log(error); return; }
         if (tweets.statuses.length > 0) {
             saveData.lastFav = tweets.statuses[0].id_str;
+            SaveData();
             twit.post('favorites/create', {id: tweets.statuses[0].id_str}, function(error, body, response) {
                 if(error) { console.log("checkFavableTweets Fav Error:"); console.log(error); return; }
             });
