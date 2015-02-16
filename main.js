@@ -93,6 +93,11 @@ function doTweet(tweetData) {
         
     });
 }
+function pepitoHasBeenOutReallyLong(tweet) {
+    var lastTweeted = new Date(tweet.created_at);
+    var threshold = 2 * 60 * 60 * 1000;
+    return (Date.now()-lastTweeted.getTime()) > threshold;
+}
 function getNormalTweet(tweet) {
     var response = {};
     var now = new Date();
@@ -105,10 +110,19 @@ function getNormalTweet(tweet) {
     else
         response.status=msg.athome[Math.floor(Math.random() * msg.athome.length)];
     if (tweet.text.indexOf("out") >= 0) {
-        if (typeof msg.outtoolong === "string")
-            response.status=msg.outtoolong;
-        else
-            response.status=msg.outtoolong[Math.floor(Math.random() * msg.outtoolong.length)];
+        if (pepitoHasBeenOutReallyLong(tweet)) {
+            console.log("I really miss Pepito");
+            if (typeof msg.outreallylong === "string")
+                response.status=msg.outreallylong;
+            else
+                response.status=msg.outreallylong[Math.floor(Math.random() * msg.outreallylong.length)];
+        }
+        else {            
+            if (typeof msg.outtoolong === "string")
+                response.status=msg.outtoolong;
+            else
+                response.status=msg.outtoolong[Math.floor(Math.random() * msg.outtoolong.length)];
+        }
     }
     
     response.status += " ("+moment().utcOffset("+0100").format("HH:mm:ss")+")";
