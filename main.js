@@ -149,8 +149,13 @@ function getResponseTweet(tweet) {
                 response.status=msg.staysafe[Math.floor(Math.random() * msg.staysafe.length)];
 
         }
-        var dateText = tweet.text.match(/\([\d]+:[\d]+:[\d]+\)/)[0];
-        response.status = "@PepitoTheCat "+response.status+" "+dateText;
+        if (tweet.text.match(/\([\d]+:[\d]+:[\d]+\)/) === null) {
+            response.status = "@PepitoTheCat WOW!";
+        }
+        else {
+            var dateText = tweet.text.match(/\([\d]+:[\d]+:[\d]+\)/)[0];
+            response.status = "@PepitoTheCat "+response.status+" "+dateText;
+        }
         response.in_reply_to_status_id = tweet.id_str;
         saveData.since_id = tweet.id_str;
         saveData.lastNormalTweet = new Date(tweet.created_at).getTime();
