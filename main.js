@@ -150,7 +150,7 @@ function getResponseTweet(tweet) {
 
         }
         if (tweet.text.match(/\([\d]+:[\d]+:[\d]+\)/) === null) {
-            response.status = "@PepitoTheCat WOW!";
+            response.status = "@PepitoTheCat Wow! That's neat, I think!";
         }
         else {
             var dateText = tweet.text.match(/\([\d]+:[\d]+:[\d]+\)/)[0];
