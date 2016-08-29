@@ -1,4 +1,4 @@
-﻿var config = require('./config-normal.js');
+﻿var config = require('./config.js');
 var twitter = require('twitter');
 var fs = require('fs');
 var twit = new twitter(config.twitter);
@@ -44,11 +44,8 @@ var responseTweetComposerStream = distinctTweetStream
     .map(composeResponseTweet)
     .share();
     
-var normalTweetMakerStream = rx.Observable.interval(intervalLength)
-    .startWith(0)
-    .map(() => { return Date.now(); })
-    .filter(time => time > saveData.lastNormalTweet + config.normalTweetInterval)
-    .flatMap(() => { return latestPepitoTweetStream; })
+var normalTweetMakerStream = latestPepitoTweetStream
+    .filter(() => { return Date.now() > (saveData.lastNormalTweet + config.normalTweetInterval)})
     .map(startPartial)
     .map(determineState)
     .shareReplay(1) // this ensures that determineState is only called once per normalTweetStream subscriber
