@@ -22,12 +22,14 @@ var rxTwitGet = rx.Observable.fromNodeCallback(twit.get, twit, arg0 => arg0);
 var latestPepitoTweetStream = rx.Observable.interval(intervalLength)
     .startWith(0)
     .flatMap(getPepitosTweets)
+    .retry()
     .map(function(tweets) {
         if (tweets.length >= 1) return tweets[0];
         return null;
     })
     .filter(tweet => tweet != null)
     .shareReplay(1) // this ensures that getPepitosTweets is only called once per latestPepitoTweetStream subscriber;
+latestPepitoTweetStream.subscribe(()=>{}, (error) => {console.log(error)});
 var distinctTweetStream = latestPepitoTweetStream
     .filter(tweet => tweet.id_str != saveData.since_id);
 
@@ -70,16 +72,24 @@ var tweetLogOutputSubscription = rx.Observable.merge(normalTweetComposerStream, 
         saveData.lastNormalTweet = Date.now();
         saveData.since_id = partial.originTweet.id_str;
         saveDataToDisk();
+    },function err(error) {
+        console.log(error);    
     });
 
 var tweetPosterSubscription = rx.Observable.merge(normalTweetComposerStream, responseTweetComposerStream)
     .flatMap(uploadPhotoIfNecessary)
     .flatMap((partial) => { return rxTwitPost('statuses/update', partial.tweetData); })
-    .subscribe(function success() {
-        console.log('Tweet posted successfully');
-        
+    .retry(5)
+    .catch((e) => {
+        console.log('There was an error', e);
+        return tweetPosterSubscription;
+    })
+    .subscribe(function success(result) {
+        if (result !== false) console.log('Tweet posted successfully')
     },function err(error) {
-        console.log(error);    
+    	console.log("Tweeting error: ");
+        console.log(error);
+        process.exit();
     });
 
 function getPepitosTweets() {
@@ -115,6 +125,7 @@ function uploadPhotoIfNecessary(partial) {
     if (partial.photo) {
         return getPictureData(getState(partial))
             .flatMap((pictureData) => { return rxTwitPost('media/upload', {media: pictureData}); })
+            .retry(1)
             .map((body) => { partial.tweetData.media_ids = body.media_id_string; return partial; });
     }
     else {
